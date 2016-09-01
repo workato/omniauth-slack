@@ -31,11 +31,8 @@ module OmniAuth
         @team_info ||= raw_info['team']
       end
 
-      # User ID is not guaranteed to be globally unique across all Slack users.
-      # The combination of user ID and team ID, on the other hand, is guaranteed
-      # to be globally unique.
       def uid
-        "#{raw_info['user']['id']}-#{raw_info['team']['id']}"
+        raw_info['user']['id']
       end
 
       def user_info

@@ -22,7 +22,6 @@ module OmniAuth
             first_name: user_info['user'].to_h['profile'].to_h['first_name'],
             last_name: user_info['user'].to_h['profile'].to_h['last_name'],
             description: user_info['user'].to_h['profile'].to_h['title'],
-            team_domain: team_info['team'].to_h['domain'],
             is_admin: user_info['user'].to_h['is_admin'],
             is_owner: user_info['user'].to_h['is_owner'],
             time_zone: user_info['user'].to_h['tz']
@@ -37,7 +36,12 @@ module OmniAuth
       end
 
       def team_info
-        @team_info ||= access_token.get('/api/team.info').parsed
+        @team_info ||= {
+          "team" => {
+            "id" => raw_info['team_id'],
+            "name" => raw_info['team']
+          }
+        }
       end
 
       def user_info

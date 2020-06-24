@@ -7,11 +7,12 @@ module OmniAuth
     class Slack < OmniAuth::Strategies::OAuth2
       option :name, 'slack'
 
-      option :authorize_options, [:scope, :team]
+      option :authorize_options, [:scope, :user_scope, :team]
 
       option :client_options, {
         site: 'https://slack.com',
-        token_url: '/api/oauth.access'
+        token_url: '/api/oauth.v2.access',
+        authorize_url: '/oauth/v2/authorize'
       }
 
       option :auth_token_params, {
@@ -70,8 +71,11 @@ module OmniAuth
       end
 
       def bot_info
-        return {} unless access_token.params.key? 'bot'
-        access_token.params['bot']
+        return {} if identity_scoped?
+        {
+          bot_user_id: access_token.params['bot_user_id'],
+          bot_access_token: access_token.token
+        }
       end
 
       def response_adapter
@@ -82,7 +86,7 @@ module OmniAuth
       end
 
       def identity_scoped?
-        authorize_params[:scope] =~ /identity\.basic/
+        authorize_params[:user_scope] =~ /identity\.basic/
       end
     end
   end

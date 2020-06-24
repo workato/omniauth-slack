@@ -32,7 +32,7 @@ module OmniAuth
       end
 
       def raw_info
-        @raw_info ||= access_token.get('/api/auth.test').parsed
+        @raw_info ||= identity_access_token.get('/api/auth.test').parsed
       end
 
       def team_info
@@ -54,6 +54,10 @@ module OmniAuth
 
       def uid
         raw_info['user_id']
+      end
+
+      def identity_access_token
+        @identity_access_token ||= ::OAuth2::AccessToken.from_hash(access_token.client, access_token.params['authed_user'])
       end
     end
   end

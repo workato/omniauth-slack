@@ -24,7 +24,7 @@ module OmniAuth
       end
 
       def raw_info
-        @raw_info ||= access_token.get('/api/users.identity').parsed
+        @raw_info ||= identity_access_token.get('/api/users.identity').parsed
       end
 
       def team_info

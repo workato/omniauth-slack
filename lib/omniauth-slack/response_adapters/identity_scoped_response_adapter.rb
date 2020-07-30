@@ -32,15 +32,11 @@ module OmniAuth
       end
 
       def uid
-        raw_info.dig('user', 'id')
+        raw_info['user']['id']
       end
 
       def user_info
         @user_info ||= raw_info["user"]
-      end
-
-      def identity_access_token
-        @identity_access_token ||= ::OAuth2::AccessToken.from_hash(access_token.client, access_token.params['authed_user'])
       end
     end
   end

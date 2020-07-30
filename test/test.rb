@@ -11,11 +11,11 @@ class ClientTest < StrategyTestCase
   end
 
   test "has correct authorize url" do
-    assert_equal "/oauth/authorize", strategy.client.options[:authorize_url]
+    assert_equal "/oauth/v2/authorize", strategy.client.options[:authorize_url]
   end
 
   test "has correct token url" do
-    assert_equal "/api/oauth.access", strategy.client.options[:token_url]
+    assert_equal "/api/oauth.v2.access", strategy.client.options[:token_url]
   end
 end
 
@@ -102,14 +102,14 @@ class CredentialsTest < StrategyTestCase
 end
 
 class IdentityScopeTest < StrategyTestCase
-  test "identity scoped if it includes an identity.basic scope" do
-    @options = { authorize_options: [:scope], scope: "identity.basic" }
+  test "identity scoped if it includes an identity.basic user_scope" do
+    @options = { authorize_options: [:scope, :user_scope], user_scope: "identity.basic" }
     assert strategy.identity_scoped?
   end
 
   test "identity scoped if scope includes additional scopes" do
-    @options = { authorize_options: [:scope],
-                 scope: "team.read,identity.basic,users.read" }
+    @options = { authorize_options: [:scope, :user_scope],
+                 user_scope: "team.read,identity.basic,users.read" }
     assert strategy.identity_scoped?
   end
 
@@ -128,17 +128,30 @@ class RawInfoTest < StrategyTestCase
     super
     @access_token = stub("OAuth2::AccessToken")
     strategy.stubs(:access_token).returns(@access_token)
+    @identity_access_token = stub("OAuth2::AccessToken")
+    strategy.response_adapter.stubs(:identity_access_token).returns(@identity_access_token)
   end
 
   test "performs a GET to https://slack.com/api/auth.test" do
-    @access_token.expects(:get).with("/api/auth.test")
+    strategy.stubs(:identity_scoped?).returns(false)
+    @identity_access_token.expects(:get).with("/api/auth.test")
       .returns(stub_everything("OAuth2::Response"))
     strategy.raw_info
   end
+end
+
+class RawIdentityInfoTest < StrategyTestCase
+  def setup
+    super
+    strategy.stubs(:identity_scoped?).returns(true)
+    @access_token = stub("OAuth2::AccessToken")
+    strategy.stubs(:access_token).returns(@access_token)
+    @identity_access_token = stub("OAuth2::AccessToken")
+    strategy.response_adapter.stubs(:identity_access_token).returns(@identity_access_token)
+  end
 
   test "performs a GET to https://slack.com/api/users.identity for identity scopes" do
-    strategy.stubs(:identity_scoped?).returns(true)
-    @access_token.expects(:get).with("/api/users.identity")
+    @identity_access_token.expects(:get).with("/api/users.identity")
       .returns(stub_everything("OAuth2::Response"))
     strategy.raw_info
   end
